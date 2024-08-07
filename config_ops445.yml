@@ -1,0 +1,58 @@
+---
+- name: Configuration for OPS445
+  hosts: all
+  become: yes
+
+  vars:
+    seneca_id: "agwong-lam"
+    ops445_dir: "/home/agwong-lam/ops445"
+
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Update Apache (httpd) package
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Ensure EPEL repository is installed
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Remove tree package if installed
+      yum:
+        name: tree
+        state: absent
+
+    - name: Set the hostname to your Seneca ID
+      hostname:
+        name: agwong-lam
+
+    - name: Create a new user with Seneca ID with sudo access
+      user:
+        name: agwong-lam
+        state: present
+        groups: wheel
+        append: yes
+        create_home: yes
+        shell: /bin/bash
+
+    - name: Configure SSH key for the new user
+      authorized_key:
+        user: agwong-lam
+        state: present
+        key: ~/.ssh/id_rsa.pub
+
+    - name: Create directory structure for OPS445 labs
+      file:
+        path: ops445/lab
+        state: directory
+        owner: agwong-lam
+        group: agwong-lam
+        mode: 0755
+      loop: range(1, 10) | list
+
